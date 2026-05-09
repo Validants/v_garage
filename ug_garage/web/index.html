@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UG Garage</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="toastContainer"></div>
+
+    <div id="app" class="hidden">
+        <div class="panel">
+            <header>
+                <div>
+                    <h1 id="title">Garage</h1>
+                    <p id="subtitle">Fahrzeuge verwalten</p>
+                </div>
+                <button class="icon" data-close-ui type="button" title="Schließen">×</button>
+            </header>
+
+            <main id="garageView" class="hidden">
+                <div class="garage-topline">
+                    <div class="brand-block">
+                        <span id="garageTypeKicker">// GARAGE</span>
+                        <strong>GARAGE</strong>
+                    </div>
+                    <div class="garage-stats">
+                        <div class="counter"><span>Total</span><b id="statTotal">0</b></div>
+                        <div class="counter green"><span>Bereit</span><b id="statReady">0</b></div>
+                        <div class="counter orange"><span>Draußen</span><b id="statOut">0</b></div>
+                        <div class="counter blue"><span>Typ</span><b id="statType">-</b></div>
+                    </div>
+                    <div class="search-box">
+                        <label>Fahrzeug suchen</label>
+                        <input id="vehicleSearch" placeholder="Name, Marke, Klasse, Kennzeichen..." oninput="renderVehicles()" />
+                    </div>
+                </div>
+                <div class="garage-actions">
+                    <div class="garage-mode-tabs" id="garageModeTabs">
+                        <button id="garageTabVehicles" class="tab active" onclick="setGarageTab('vehicles')">
+                            <span>Meine Garage</span>
+                            <small>eingeparkte Fahrzeuge</small>
+                        </button>
+                        <button id="garageTabImpound" class="tab impound-tab" onclick="setGarageTab('impound')">
+                            <span>Impound</span>
+                            <small>nicht mehr draußen</small>
+                        </button>
+                    </div>
+                </div>
+                <div id="vehicleList" class="list vehicle-grid"></div>
+            </main>
+
+            <main id="adminView" class="hidden admin-grid">
+                <div class="admin-tabs wide-card">
+                    <button id="tabPublic" class="tab active" onclick="setAdminTab('public')">Öffentliche Garagen</button>
+                    <button id="tabJob" class="tab" onclick="setAdminTab('job')">Jobgaragen</button>
+                </div>
+
+                <section class="card form" id="garageFormCard">
+                    <h2 id="garageFormTitle">Garage erstellen / bearbeiten</h2>
+                    <p class="small-note" id="garageFormHint">Erstelle öffentliche Garagen oder wähle rechts eine Garage zum Bearbeiten.</p>
+                    <label>ID <input id="gId" placeholder="z.B. legion"></label>
+                    <label>Name <input id="gLabel" placeholder="z.B. Legion Garage"></label>
+                    <label>Typ
+                        <select id="gType" onchange="toggleJobField()">
+                            <option value="public">Öffentlich</option>
+                            <option value="job">Jobgarage</option>
+                        </select>
+                    </label>
+                    <label id="jobField" class="hidden">Job <input id="gJob" placeholder="police, ambulance..."></label>
+                    <label>Fahrzeugtyp
+                        <select id="gVehicleType">
+                            <option value="car">Normale Fahrzeuge</option>
+                            <option value="air">Flugzeuge / Helikopter</option>
+                            <option value="boat">Boote</option>
+                        </select>
+                    </label>
+                    <label class="check"><input id="gBlip" type="checkbox" checked> Blip anzeigen</label>
+
+                    <div class="coords">
+                        <h3>Öffnungspunkt</h3>
+                        <div class="button-row">
+                            <button onclick="useCurrentPosition('coords')">Meine Position nutzen</button>
+                            <button class="accent" onclick="startPlacement('coords')">Sims-Modus</button>
+                        </div>
+                        <pre id="coordsPreview">Nicht gesetzt</pre>
+                    </div>
+
+                    <div class="coords">
+                        <h3>Einparkpunkt</h3>
+                        <div class="button-row">
+                            <button onclick="useCurrentPosition('store')">Meine Position nutzen</button>
+                            <button onclick="useVehiclePosition('store')">Fahrzeugposition nutzen</button>
+                            <button class="accent" onclick="startPlacement('store')">Sims-Modus</button>
+                        </div>
+                        <pre id="storePreview">Nicht gesetzt</pre>
+                    </div>
+
+                    <div class="coords">
+                        <h3>Auspark-/Spawnpunkt</h3>
+                        <div class="button-row">
+                            <button onclick="useVehiclePosition('spawn')">Fahrzeug-/Meine Position nutzen</button>
+                            <button class="accent" onclick="startPlacement('spawn')">Sims-Modus</button>
+                        </div>
+                        <pre id="spawnPreview">Nicht gesetzt</pre>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="primary" onclick="saveGarage()">Garage speichern</button>
+                        <button onclick="newGarageForm()">Neu</button>
+                    </div>
+                </section>
+
+                <section id="publicGaragePanel" class="card">
+                    <h2>Öffentliche Garagen</h2>
+                    <p class="small-note">Diese Garagen können alle Spieler sehen und nutzen.</p>
+                    <div id="adminPublicGarageList" class="list compact"></div>
+                </section>
+
+                <section id="jobGaragePanel" class="card hidden">
+                    <h2>Jobgaragen</h2>
+                    <p class="small-note">Diese Garagen sehen nur Spieler mit dem passenden Job. Klicke auf eine Jobgarage, um Fahrzeuge zu verwalten.</p>
+                    <div id="adminJobGarageList" class="list compact"></div>
+                </section>
+
+                <section id="jobGarageWorkspace" class="card wide-card hidden faction-page">
+                    <div class="section-head faction-head">
+                        <div>
+                            <button class="ghost-link" onclick="backToJobGarages()">← Zurück zu Jobgaragen</button>
+                            <h2 id="jobWorkspaceTitle">Fraktionsfahrzeuge</h2>
+                            <p id="jobVehicleSubtitle" class="small-note">Wähle eine Jobgarage aus.</p>
+                        </div>
+                        <button class="accent" onclick="editSelectedJobGarage()">Garage bearbeiten</button>
+                    </div>
+
+                    <div class="split-grid faction-split">
+                        <div>
+                            <div class="section-head mini">
+                                <div>
+                                    <h3>Fahrzeuge</h3>
+                                    <p class="small-note">Alle Fahrzeuge dieser Jobgarage. Hier kannst du sie bearbeiten oder löschen.</p>
+                                </div>
+                            </div>
+                            <div id="adminJobVehicleList" class="list job-vehicle-grid"></div>
+                        </div>
+
+                        <div class="create-box faction-form">
+                            <h3 id="jobVehicleFormTitle">Fahrzeug erstellen</h3>
+                            <p class="small-note">Spawnname, Anzeigename und RGB-Farben festlegen. Die Farben werden beim Ausparken gesetzt.</p>
+                            <input id="jvGarageId" type="hidden">
+                            <input id="jvId" type="hidden">
+                            <label>Spawnname <input id="jvModel" placeholder="z.B. police3, ambulance, sultanrs"></label>
+                            <label>Anzeigename <input id="jvLabel" placeholder="z.B. Streifenwagen"></label>
+                            <div class="rgb-grid">
+                                <label>Primär R <input id="jvPr" type="number" min="0" max="255" value="255"></label>
+                                <label>G <input id="jvPg" type="number" min="0" max="255" value="255"></label>
+                                <label>B <input id="jvPb" type="number" min="0" max="255" value="255"></label>
+                            </div>
+                            <div class="rgb-grid">
+                                <label>Sekundär R <input id="jvSr" type="number" min="0" max="255" value="255"></label>
+                                <label>G <input id="jvSg" type="number" min="0" max="255" value="255"></label>
+                                <label>B <input id="jvSb" type="number" min="0" max="255" value="255"></label>
+                            </div>
+                            <div class="button-row">
+                                <button id="jobVehicleSaveBtn" class="primary" onclick="saveJobVehicle()">Fahrzeug erstellen</button>
+                                <button onclick="resetJobVehicleForm()">Zurücksetzen</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
