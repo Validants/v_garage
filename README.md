@@ -1,6 +1,6 @@
-# ug_garage
+# v_garage
 
-`ug_garage` ist ein Garage-System für FiveM mit NUI, Adminverwaltung, öffentlichen Garagen, Jobgaragen, Impound-Funktion und Unterstützung für ESX sowie QBCore.
+`v_garage` ist ein Garage-System für FiveM mit NUI, Adminverwaltung, öffentlichen Garagen, Jobgaragen, Impound-Funktion und Unterstützung für ESX sowie QBCore.
 
 Das Script ist darauf ausgelegt, Garagen direkt ingame zu erstellen und zu verwalten, ohne Positionen dauerhaft manuell in Config-Dateien eintragen zu müssen.
 
@@ -46,7 +46,7 @@ ensure screenshot-basic
 ## Installation
 
 1. Resource in den `resources`-Ordner legen.
-2. Ordnername sollte `ug_garage` sein.
+2. Ordnername sollte `v_garage` sein.
 3. SQL ausführen:
 
 ```sql
@@ -58,7 +58,7 @@ sql/install.sql
 ```cfg
 ensure oxmysql
 ensure ox_lib
-ensure ug_garage
+ensure v_garage
 ```
 
 Wenn automatische Fahrzeugbilder genutzt werden:
@@ -67,7 +67,7 @@ Wenn automatische Fahrzeugbilder genutzt werden:
 ensure screenshot-basic
 ensure oxmysql
 ensure ox_lib
-ensure ug_garage
+ensure v_garage
 ```
 
 ## Konfiguration
@@ -368,7 +368,7 @@ UPDATE `ug_garages` SET `vehicle_type` = 'car' WHERE `vehicle_type` IS NULL OR `
 ensure screenshot-basic
 ensure oxmysql
 ensure ox_lib
-ensure ug_garage
+ensure v_garage
 ```
 
 Ohne Fahrzeugbilder:
@@ -376,13 +376,13 @@ Ohne Fahrzeugbilder:
 ```cfg
 ensure oxmysql
 ensure ox_lib
-ensure ug_garage
+ensure v_garage
 ```
 
 ## Ordnerstruktur
 
 ```txt
-ug_garage/
+v_garage/
 ├── client/
 ├── server/
 ├── shared/
